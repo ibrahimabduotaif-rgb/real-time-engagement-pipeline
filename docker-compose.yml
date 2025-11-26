@@ -1,0 +1,40 @@
+version: '3'
+services:
+  # Zookeeper service for Kafka coordination
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  # Kafka broker used to ingest raw engagement events
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # PostgreSQL database used as the source system and dimension store
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app_db
+
+  # Redis instance for maintaining real‑time leaderboards
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  # Spark master (worker nodes are automatically managed in this lightweight deployment)
+  spark-master:
+    image: bitnami/spark:3.5
+    volumes:
+      - ./:/app
+    command: tail -f /dev/null
