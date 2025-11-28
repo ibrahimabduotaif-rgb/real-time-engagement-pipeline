@@ -1,0 +1,5 @@
+pyspark==3.5.0
+psycopg2-binary
+redis
+faker
+kafka-python
